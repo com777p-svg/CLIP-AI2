@@ -1,38 +1,58 @@
-const input=document.getElementById('fileInput');
-const video=document.getElementById('videoPreview');
-const empty=document.getElementById('emptyState');
-const track=document.getElementById('videoTrack');
-const toast=document.getElementById('toast');
-let objectUrl=null, fileName='';
-const notify=(message)=>{toast.textContent=message;toast.classList.add('show');clearTimeout(notify.timer);notify.timer=setTimeout(()=>toast.classList.remove('show'),2600)};
-const choose=()=>input.click();
-document.getElementById('addMediaBtn').addEventListener('click',choose);
-document.getElementById('chooseFileBtn').addEventListener('click',choose);
-input.addEventListener('change',()=>{
- const file=input.files&&input.files[0]; if(!file)return;
- if(!file.type.startsWith('video/')){notify('اختر ملف فيديو صالحًا');return}
- if(objectUrl)URL.revokeObjectURL(objectUrl);
- objectUrl=URL.createObjectURL(file);fileName=file.name;
- video.src=objectUrl;video.hidden=false;empty.hidden=true;
- document.getElementById('clipCount').textContent='1 مقطع';
- track.innerHTML='<div class="clip-block"><span>▣</span><span>'+escapeText(file.name)+'</span></div>';
- document.getElementById('removeBtn').disabled=false;
- document.getElementById('splitBtn').disabled=false;
- video.onloadedmetadata=()=>{document.getElementById('timeReadout').textContent='00:00 / '+format(video.duration)};
- document.getElementById('exportBtn').disabled=false;
- notify('تمت إضافة الفيديو للمعاينة المحلية');
-});
-video.addEventListener('timeupdate',()=>{document.getElementById('timeReadout').textContent=format(video.currentTime)+' / '+format(video.duration||0)});
-document.getElementById('removeBtn').addEventListener('click',()=>{
- video.pause();video.removeAttribute('src');video.load();video.hidden=true;empty.hidden=false;track.innerHTML='<div class="track-placeholder">أضف فيديو ليظهر هنا في الخط الزمني</div>';
- document.getElementById('clipCount').textContent='لا توجد مقاطع';document.getElementById('timeReadout').textContent='00:00 / 00:00';
- document.getElementById('removeBtn').disabled=true;document.getElementById('splitBtn').disabled=true;document.getElementById('exportBtn').disabled=true;
- if(objectUrl)URL.revokeObjectURL(objectUrl);objectUrl=null;input.value='';notify('تمت إزالة الفيديو من المشروع');
-});
-document.getElementById('splitBtn').addEventListener('click',()=>notify('أداة التقسيم قيد التنفيذ — لم نفعّلها قبل اكتمال اختبارها'));
-document.getElementById('aspectSelect').addEventListener('change',e=>{document.getElementById('ratioLabel').textContent=e.target.value;notify('تم تغيير مساحة المعاينة إلى '+e.target.value)});
-document.getElementById('exportBtn').addEventListener('click',()=>notify('محرك التصدير للموقع لم يُربط بعد؛ لن ندّعي إنشاء ملف غير موجود.'));
-document.getElementById('helpBtn').addEventListener('click',()=>notify('أضف فيديو من جهازك لمعاينته محليًا.'));
-document.querySelectorAll('[data-soon]').forEach(el=>el.addEventListener('click',()=>notify(el.dataset.soon+' — ضمن خطة التطوير')));
-function format(s){if(!Number.isFinite(s))return '00:00';let n=Math.floor(s);return String(Math.floor(n/60)).padStart(2,'0')+':'+String(n%60).padStart(2,'0')}
-function escapeText(s){return s.replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
+import { FFmpeg } from '@ffmpeg/ffmpeg';
+import { fetchFile, toBlobURL } from '@ffmpeg/util';
+
+const $ = (id) => document.getElementById(id);
+const state = { clips: [], selected: null, ffmpeg: null, exporting: false, projectName: 'مشروعي الجديد' };
+const input = $('fileInput'), video = $('videoPreview'), empty = $('emptyState');
+let toastTimer;
+function toast(message){$('toast').textContent=message;$('toast').classList.add('show');clearTimeout(toastTimer);toastTimer=setTimeout(()=>$('toast').classList.remove('show'),3000)}
+function fmt(seconds){if(!Number.isFinite(seconds))return '00:00';const n=Math.max(0,Math.floor(seconds));return String(Math.floor(n/60)).padStart(2,'0')+':'+String(n%60).padStart(2,'0')}
+function uid(){return crypto.randomUUID?crypto.randomUUID():String(Date.now())+Math.random()}
+function selected(){return state.clips.find(c=>c.id===state.selected)}
+function updateButtons(){const has=state.clips.length>0,sel=!!selected();$('exportBtn').disabled=!has||state.exporting;$('splitBtn').disabled=!sel;$('deleteBtn').disabled=!sel;$('moveLeftBtn').disabled=!sel||state.clips.findIndex(c=>c.id===state.selected)===0;$('moveRightBtn').disabled=!sel||state.clips.findIndex(c=>c.id===state.selected)===state.clips.length-1;$('playBtn').disabled=!sel;$('stopBtn').disabled=!sel;$('clipCount').textContent=state.clips.length?state.clips.length+' مقطع':'لا توجد مقاطع';$('totalDuration').textContent=fmt(state.clips.reduce((a,c)=>a+c.end-c.start,0))}
+function persist(){try{localStorage.setItem('clipai-project-meta',JSON.stringify({name:$('projectName').value,clips:state.clips.map(c=>({name:c.name,start:c.start,end:c.end,duration:c.duration}))}));$('saveState').textContent='حُفظت بيانات المشروع'}catch{$('saveState').textContent='الحفظ المحلي غير متاح'}}
+function render(){
+ const list=$('videoTrack');list.innerHTML='';
+ if(!state.clips.length){list.innerHTML='<div class="track-placeholder">أضف فيديو ليظهر هنا في الخط الزمني</div>';video.hidden=true;empty.hidden=false;updateButtons();return}
+ state.clips.forEach((clip,index)=>{
+  const row=document.createElement('div');row.className='clip-row'+(clip.id===state.selected?' selected':'');
+  const main=document.createElement('div');main.className='clip-main';
+  const thumb=document.createElement('div');thumb.className='clip-thumb';thumb.textContent='▶';thumb.style.display='grid';thumb.style.placeItems='center';
+  const info=document.createElement('div');info.style.minWidth='0';const name=document.createElement('div');name.className='clip-name';name.textContent=clip.name;const sub=document.createElement('div');sub.className='clip-sub';sub.textContent=fmt(clip.start)+' — '+fmt(clip.end)+' · '+fmt(clip.end-clip.start);info.append(name,sub);main.append(thumb,info);main.onclick=()=>selectClip(clip.id);
+  const controls=document.createElement('div');controls.className='clip-controls';
+  [['معاينة',()=>selectClip(clip.id)],['↑',()=>moveClip(index,-1)],['↓',()=>moveClip(index,1)],['حذف',()=>removeClip(clip.id)]].forEach(([label,fn])=>{const b=document.createElement('button');b.textContent=label;b.onclick=fn;controls.append(b)});
+  const trim=document.createElement('div');trim.className='trim-fields';
+  const makeField=(label,value,handler,max)=>{const l=document.createElement('label');l.textContent=label;const inp=document.createElement('input');inp.type='number';inp.min='0';inp.max=String(max);inp.step='0.1';inp.value=Number(value.toFixed(1));inp.addEventListener('change',()=>handler(Number(inp.value)));trim.append(l,inp)};
+  makeField('بداية (ث)',clip.start,v=>{clip.start=Math.max(0,Math.min(v,clip.end-.1));persist();render()},clip.duration);
+  makeField('نهاية (ث)',clip.end,v=>{clip.end=Math.max(clip.start+.1,Math.min(v,clip.duration));persist();render()},clip.duration);
+  row.append(main,controls,trim);list.append(row);
+ });
+ updateButtons();persist();
+}
+function selectClip(id){state.selected=id;const c=selected();if(!c)return;video.src=c.url;video.hidden=false;empty.hidden=true;video.currentTime=Math.min(c.start,Math.max(0,c.end-.05));video.onloadedmetadata=()=>{video.currentTime=Math.min(c.start,Math.max(0,c.end-.05));$('timeReadout').textContent=fmt(video.currentTime)+' / '+fmt(c.duration)};render()}
+function removeClip(id){const i=state.clips.findIndex(c=>c.id===id);if(i<0)return;URL.revokeObjectURL(state.clips[i].url);state.clips.splice(i,1);state.selected=state.clips[Math.max(0,i-1)]?.id||null;if(state.selected)selectClip(state.selected);else render();toast('تم حذف المقطع')}
+function moveClip(index,delta){const next=index+delta;if(next<0||next>=state.clips.length)return;[state.clips[index],state.clips[next]]=[state.clips[next],state.clips[index]];render()}
+function addFiles(files){for(const file of files){if(!file.type.startsWith('video/'))continue;const url=URL.createObjectURL(file);const clip={id:uid(),file,url,name:file.name,start:0,end:0,duration:0};const probe=document.createElement('video');probe.preload='metadata';probe.src=url;probe.onloadedmetadata=()=>{clip.duration=probe.duration;clip.end=probe.duration;if(!state.selected)state.selected=clip.id;render();if(state.selected===clip.id)selectClip(clip.id)};probe.onerror=()=>toast('تعذر قراءة '+file.name);state.clips.push(clip)}if(!files.length)return;render();toast('تمت إضافة '+files.length+' ملف/ملفات للخط الزمني')}
+$('addMediaBtn').onclick=$('addMediaTop').onclick=$('chooseFileBtn').onclick=()=>input.click();
+input.onchange=()=>{addFiles([...input.files]);input.value=''};
+$('deleteBtn').onclick=()=>{if(state.selected)removeClip(state.selected)};
+$('moveLeftBtn').onclick=()=>{const i=state.clips.findIndex(c=>c.id===state.selected);moveClip(i,-1)};
+$('moveRightBtn').onclick=()=>{const i=state.clips.findIndex(c=>c.id===state.selected);moveClip(i,1)};
+$('splitBtn').onclick=()=>{const c=selected();if(!c)return;const at=video.currentTime;if(at<=c.start+.1||at>=c.end-.1){toast('ضع مؤشر التشغيل داخل المقطع قبل التقسيم');return}const second={...c,id:uid(),start:at};c.end=at;state.clips.splice(state.clips.indexOf(c)+1,0,second);state.selected=second.id;render();selectClip(second.id);toast('تم تقسيم المقطع عند موضع التشغيل')};
+$('playBtn').onclick=()=>{const c=selected();if(!c)return;video.currentTime=Math.max(c.start,video.currentTime);video.play()};
+$('stopBtn').onclick=()=>video.pause();
+video.ontimeupdate=()=>{const c=selected();if(!c)return;$('timeReadout').textContent=fmt(video.currentTime)+' / '+fmt(c.duration);if(video.currentTime>=c.end){video.pause();video.currentTime=c.end}};
+$('aspectSelect').onchange=()=>{$('ratioLabel').textContent=$('aspectSelect').value;persist()};
+$('projectName').oninput=persist;
+$('saveProjectBtn').onclick=()=>{const data={format:'CLIPAI_PROJECT_V1',name:$('projectName').value,aspect:$('aspectSelect').value,quality:$('qualitySelect').value,fps:$('fpsSelect').value,clips:state.clips.map(c=>({name:c.name,start:c.start,end:c.end,duration:c.duration}))};const blob=new Blob([JSON.stringify(data,null,2)],{type:'application/json'});download(blob,(data.name||'project')+'.clipai');toast('تم حفظ ملف إعدادات المشروع؛ أعد استيراد الوسائط عند فتحه')};
+$('loadProjectBtn').onclick=()=>$('projectInput').click();
+$('projectInput').onchange=async e=>{const f=e.target.files[0];if(!f)return;try{const data=JSON.parse(await f.text());if(data.format!=='CLIPAI_PROJECT_V1')throw Error();$('projectName').value=data.name||'مشروع مستورد';if(data.aspect)$('aspectSelect').value=data.aspect;if(data.quality)$('qualitySelect').value=data.quality;if(data.fps)$('fpsSelect').value=data.fps;toast('تم تحميل إعدادات المشروع. استورد ملفات الفيديو الأصلية لإعادة ربط المقاطع.');persist()}catch{toast('ملف المشروع غير صالح')}e.target.value=''};
+function download(blob,name){const a=document.createElement('a');const url=URL.createObjectURL(blob);a.href=url;a.download=name;a.click();setTimeout(()=>URL.revokeObjectURL(url),3000)}
+async function loadEngine(){if(state.ffmpeg)return state.ffmpeg;$('engineStatus').textContent='جارٍ تحميل محرك FFmpeg؛ قد يستغرق ذلك أول مرة.';const ffmpeg=new FFmpeg();ffmpeg.on('progress',({progress})=>{$('exportProgress').value=Math.round(progress*100);$('progressText').textContent=Math.round(progress*100)+'%'});ffmpeg.on('log',({message})=>{if(message.includes('Error'))console.warn(message)});const base='https://unpkg.com/@ffmpeg/core@0.12.10/dist/umd';await ffmpeg.load({coreURL:await toBlobURL(base+'/ffmpeg-core.js','text/javascript'),wasmURL:await toBlobURL(base+'/ffmpeg-core.wasm','application/wasm')});state.ffmpeg=ffmpeg;$('engineStatus').textContent='محرك FFmpeg جاهز — التصدير يتم داخل المتصفح.';return ffmpeg}
+async function exportVideo(){if(state.exporting||!state.clips.length)return;state.exporting=true;updateButtons();$('progressWrap').hidden=false;$('exportProgress').value=0;$('progressText').textContent='0%';try{const ff=await loadEngine();const files=[];for(let i=0;i<state.clips.length;i++){const c=state.clips[i],name='input_'+i+'.mp4',out='part_'+i+'.mp4';await ff.writeFile(name,await fetchFile(c.file));const args=['-ss',String(c.start),'-i',name,'-t',String(c.end-c.start),'-vf'];const ratio=$('aspectSelect').value;let w=Number($('qualitySelect').value),h=Math.round(w*9/16);if(ratio==='9:16'){h=w;w=Math.round(h*9/16)}if(ratio==='1:1'){h=w}args.push('scale='+w+':'+h+':force_original_aspect_ratio=decrease,pad='+w+':'+h+':(ow-iw)/2:(oh-ih)/2,setsar=1,fps='+$('fpsSelect').value);args.push('-c:v','libx264','-preset','ultrafast','-crf','23','-c:a','aac','-b:a','128k','-movflags','+faststart',out);await ff.exec(args);files.push(out)}const concat=files.map(f=>"file '"+f+"'").join('\n');await ff.writeFile('concat.txt',new TextEncoder().encode(concat));await ff.exec(['-f','concat','-safe','0','-i','concat.txt','-c','copy','output.mp4']);const bytes=await ff.readFile('output.mp4');download(new Blob([bytes.buffer],{type:'video/mp4'}),($('projectName').value||'clip-ai')+'.mp4');$('engineStatus').textContent='اكتمل التصدير بنجاح.';toast('اكتمل إنشاء ملف MP4');for(const f of [...files,'concat.txt','output.mp4',...state.clips.map((_,i)=>'input_'+i+'.mp4')]){try{await ff.deleteFile(f)}catch{}}}catch(err){console.error(err);$('engineStatus').textContent='تعذر التصدير. قد لا يدعم المتصفح/الجهاز تشغيل محرك FFmpeg أو قد تكون الذاكرة غير كافية.';toast('فشل التصدير: '+(err?.message||'خطأ غير معروف'))}finally{state.exporting=false;updateButtons()}}
+$('exportBtn').onclick=exportVideo;
+$('helpBtn').onclick=()=>{$('dialogTitle').textContent='طريقة استخدام CLIP AI';$('dialogText').textContent='استورد فيديوهات متعددة، اختر مقطعًا، اضبط بدايته ونهايته، ثم رتّب المقاطع أو قسّمها عند مؤشر التشغيل. زر تصدير MP4 يشغّل محرك FFmpeg داخل المتصفح. الملفات لا تُرفع إلى خادم. التصدير قد يستهلك ذاكرة كبيرة على الهواتف.';$('infoDialog').showModal()};
+$('closeDialog').onclick=()=>$('infoDialog').close();
+document.querySelectorAll('[data-tab]').forEach(b=>b.onclick=()=>{const tab=b.dataset.tab;if(tab==='editor')return;const msg=tab==='auto'?'المونتاج التلقائي يحتاج ربط نموذج ذكاء اصطناعي وخادم آمن قبل تفعيله.':'هذه الوحدة ضمن بنية المشروع، وسيتم ربطها بخدمات فعلية قبل إعلان جاهزيتها.';$('dialogTitle').textContent=b.textContent.trim();$('dialogText').textContent=msg;$('infoDialog').showModal()});
+window.addEventListener('beforeunload',()=>state.clips.forEach(c=>URL.revokeObjectURL(c.url)));
+render();

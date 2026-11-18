@@ -114,13 +114,13 @@ private fun ClipAiWorkspace() {
                         }
                     },
                     actions = {
-                        IconButton(onClick = { playheadMs = 0L }) {
-                            Icon(Icons.Default.Undo, contentDescription = "إعادة المؤشر للبداية", tint = Color.White)
+                        IconButton(onClick = { }, enabled = false) {
+                            Icon(Icons.Default.Undo, contentDescription = "تراجع - قريباً", tint = Muted)
                         }
-                        IconButton(onClick = { if (clips.isNotEmpty()) playheadMs = totalDuration }) {
-                            Icon(Icons.Default.Redo, contentDescription = "نهاية الخط الزمني", tint = Color.White)
+                        IconButton(onClick = { }, enabled = false) {
+                            Icon(Icons.Default.Redo, contentDescription = "إعادة - قريباً", tint = Muted)
                         }
-                        TextButton(onClick = { }) { Text("تصدير", color = Muted) }
+                        TextButton(onClick = { }, enabled = false) { Text("تصدير قريباً", color = Muted) }
                     },
                     colors = TopAppBarDefaults.topAppBarColors(containerColor = Ink, titleContentColor = Color.White)
                 )

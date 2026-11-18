@@ -1,10 +1,10 @@
 name: Build CLIP AI Web
 on:
   pull_request:
-    paths: ['web/**']
+    paths: ['web/**', '.github/workflows/clip-ai-web-build.yml']
   push:
     branches: [main]
-    paths: ['web/**']
+    paths: ['web/**', '.github/workflows/clip-ai-web-build.yml']
   workflow_dispatch:
 permissions:
   contents: read
@@ -19,8 +19,6 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 20
-          cache: npm
-          cache-dependency-path: web/package-lock.json
       - run: npm install
       - run: npm run build
       - uses: actions/upload-artifact@v4

@@ -23,7 +23,8 @@
         <button class="nav-item" data-tab="projects"><span>▤</span> مشاريعي</button>
         <div class="side-divider"></div>
         <div class="side-label">أدوات التحرير</div>
-        <button class="tool-item" id="addMediaBtn"><span class="tool-icon purple">＋</span><span><b>إضافة وسائط</b><small>فيديوهات من جهازك</small></span></button>
+        <button class="tool-item" id="addMediaBtn"><span class="tool-icon purple">＋</span><span><b>إضافة فيديو</b><small>مقاطع من جهازك</small></span></button>
+        <button class="tool-item" id="addAudioBtn"><span class="tool-icon">♫</span><span><b>إضافة موسيقى</b><small>مسار صوتي خلفي</small></span></button>
         <button class="tool-item" id="splitBtn" disabled><span class="tool-icon">✂</span><span><b>تقسيم عند المؤشر</b><small>تقسيم المقطع المحدد</small></span></button>
         <button class="tool-item" id="deleteBtn" disabled><span class="tool-icon">⌫</span><span><b>حذف المقطع</b><small>إزالة من المشروع</small></span></button>
         <div class="sidebar-footer"><span class="status-dot"></span> معالجة محلية داخل المتصفح</div>
@@ -47,6 +48,7 @@
           </aside>
         </section>
         <section class="timeline-panel">
+          <div class="audio-track-panel"><div class="audio-track-heading"><b>المسار الصوتي</b><span id="audioStatus">لم تتم إضافة موسيقى</span></div><div class="audio-track-controls"><audio id="audioPreview" controls hidden></audio><label for="musicVolume">مستوى الصوت</label><input id="musicVolume" type="range" min="0" max="1" value="0.35" step="0.05"><button class="small-btn" id="removeAudioBtn" disabled>إزالة الصوت</button></div></div>
           <div class="timeline-heading"><div><h3>الخط الزمني</h3><span id="clipCount">لا توجد مقاطع</span></div><div class="timeline-actions"><button class="small-btn" id="moveLeftBtn" disabled>↑ تقديم</button><button class="small-btn" id="moveRightBtn" disabled>↓ تأخير</button></div></div>
           <div class="timeline-ruler"><span>بداية المشروع</span><span>المقاطع مرتبة من اليمين إلى اليسار</span><span>النهاية</span></div>
           <div id="videoTrack" class="clip-list"><div class="track-placeholder">أضف فيديو ليظهر هنا في الخط الزمني</div></div>
@@ -57,6 +59,7 @@
       </section>
     </main>
     <input id="fileInput" type="file" accept="video/*" multiple hidden />
+    <input id="audioInput" type="file" accept="audio/*" hidden />
     <input id="projectInput" type="file" accept=".clipai,application/json" hidden />
     <div class="toast" id="toast" role="status" aria-live="polite"></div>
     <dialog id="infoDialog"><div class="dialog-content"><button class="dialog-close" id="closeDialog">×</button><h2 id="dialogTitle">معلومة</h2><p id="dialogText"></p></div></dialog>

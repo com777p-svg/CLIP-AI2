@@ -34,7 +34,7 @@
           <div class="preview-panel">
             <div class="panel-top"><span>المعاينة</span><div class="preview-meta"><span id="ratioLabel">16:9</span><span class="quality-pill">معاينة محلية</span></div></div>
             <div class="preview-stage" id="previewStage"><div class="empty-state" id="emptyState"><div class="upload-symbol">↑</div><h2>ابدأ مشروعك</h2><p>استورد فيديو أو أكثر لبناء الخط الزمني</p><button class="primary-btn" id="chooseFileBtn">اختيار فيديوهات</button><small>لا يتم رفع ملفاتك إلى خادم في هذه النسخة</small></div><video id="videoPreview" controls playsinline hidden></video></div>
-            <div class="preview-controls"><span id="timeReadout">00:00 / 00:00</span><div><button class="small-btn" id="playBtn" disabled>▶ تشغيل</button><button class="small-btn" id="stopBtn" disabled>■ إيقاف</button></div></div>
+            <div class="preview-controls"><span id="timeReadout">00:00 / 00:00</span><input id="seekSlider" class="seek-slider" type="range" min="0" max="100" value="0" step="0.1" aria-label="موضع التشغيل"><div><button class="small-btn" id="playBtn" disabled>▶ تشغيل</button><button class="small-btn" id="stopBtn" disabled>■ إيقاف</button></div></div>
           </div>
           <aside class="inspector">
             <h3>إعدادات المشروع</h3>

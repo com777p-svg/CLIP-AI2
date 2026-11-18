@@ -62,7 +62,7 @@ class VideoExportEngine(
             .addListener(object : Transformer.Listener {
                 override fun onCompleted(composition: Composition, exportResult: ExportResult) {
                     transformer = null
-                    onCompleted(output)
+                    this@VideoExportEngine.onCompleted(output)
                 }
 
                 override fun onError(
@@ -72,7 +72,7 @@ class VideoExportEngine(
                 ) {
                     transformer = null
                     output.delete()
-                    onError(exportException)
+                    this@VideoExportEngine.onError(exportException)
                 }
             })
             .build()

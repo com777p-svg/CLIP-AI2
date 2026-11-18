@@ -4,51 +4,63 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <meta name="theme-color" content="#0b0b10" />
+  <meta name="description" content="CLIP AI — محرر فيديو احترافي في المتصفح" />
   <title>CLIP AI — Video Studio</title>
-  <link rel="stylesheet" href="./styles.css" />
 </head>
 <body>
-  <header class="topbar">
-    <a class="brand" href="#" aria-label="CLIP AI home"><span class="brand-mark">C</span><span>CLIP <b>AI</b></span></a>
-    <div class="project-name"><span class="live-dot"></span> مشروع جديد <span class="muted">·</span> لم يتم الحفظ</div>
-    <div class="top-actions"><button class="quiet-btn" id="helpBtn">مساعدة</button><button class="export-btn" id="exportBtn" disabled>تصدير الفيديو <span>↗</span></button></div>
-  </header>
-  <main class="app-shell">
-    <aside class="sidebar">
-      <div class="side-label">مساحة العمل</div>
-      <button class="nav-item active"><span>▣</span> المحرر</button>
-      <button class="nav-item" data-soon="مختبر الذكاء الاصطناعي"><span>✧</span> مختبر AI <small>قريبًا</small></button>
-      <button class="nav-item" data-soon="مشاريعي"><span>▤</span> مشاريعي</button>
-      <div class="side-divider"></div>
-      <div class="side-label">الأدوات</div>
-      <button class="tool-item" data-soon="المونتاج التلقائي"><span class="tool-icon purple">✦</span><span><b>المونتاج التلقائي</b><small>دع الذكاء الاصطناعي يحرر لك</small></span></button>
-      <button class="tool-item" data-soon="النصوص والترجمة"><span class="tool-icon">T</span><span><b>النصوص والترجمة</b><small>عناوين وترجمة تلقائية</small></span></button>
-      <button class="tool-item" data-soon="الصوت والموسيقى"><span class="tool-icon">♫</span><span><b>الصوت والموسيقى</b><small>مسارات صوتية ومزج</small></span></button>
-      <button class="tool-item" data-soon="المؤثرات والانتقالات"><span class="tool-icon">◇</span><span><b>المؤثرات</b><small>انتقالات وفلاتر</small></span></button>
-      <div class="sidebar-footer"><span class="status-dot"></span> نسخة تأسيسية قيد التطوير</div>
-    </aside>
-    <section class="workspace">
-      <div class="workspace-heading"><div><div class="eyebrow">CLIP AI STUDIO</div><h1>محرر الفيديو</h1><p>اصنع فيديوهاتك بطريقتك، بمساعدة الذكاء الاصطناعي.</p></div><button class="new-project" id="addMediaBtn">＋ إضافة وسائط</button></div>
-      <section class="preview-panel">
-        <div class="panel-top"><span>المعاينة</span><div class="preview-meta"><span id="ratioLabel">16:9</span><span class="quality-pill">مساحة العمل</span></div></div>
-        <div class="preview-stage" id="previewStage">
-          <div class="empty-state" id="emptyState"><div class="upload-symbol">↑</div><h2>ابدأ مشروعك الأول</h2><p>أضف فيديو من جهازك لبدء التحرير</p><button class="primary-btn" id="chooseFileBtn">اختيار فيديو</button><small>ملفاتك تبقى على جهازك في هذه النسخة التجريبية</small></div>
-          <video id="videoPreview" controls playsinline hidden></video>
-        </div>
-        <div class="preview-controls"><span id="timeReadout">00:00 / 00:00</span><span class="muted">المعاينة المحلية</span></div>
+  <div id="app">
+    <header class="topbar">
+      <a class="brand" href="#" aria-label="CLIP AI"><span class="brand-mark">C</span><span>CLIP <b>AI</b></span></a>
+      <div class="project-name"><span class="live-dot"></span><input id="projectName" value="مشروعي الجديد" aria-label="اسم المشروع"><span id="saveState">محفوظ محليًا</span></div>
+      <div class="top-actions"><button class="quiet-btn" id="helpBtn">مساعدة</button><button class="export-btn" id="exportBtn" disabled>تصدير MP4 <span>↗</span></button></div>
+    </header>
+    <main class="app-shell">
+      <aside class="sidebar">
+        <div class="side-label">مساحة العمل</div>
+        <button class="nav-item active" data-tab="editor"><span>▣</span> المحرر</button>
+        <button class="nav-item" data-tab="auto"><span>✧</span> المونتاج التلقائي <small>AI</small></button>
+        <button class="nav-item" data-tab="lab"><span>⌘</span> مختبر AI</button>
+        <button class="nav-item" data-tab="projects"><span>▤</span> مشاريعي</button>
+        <div class="side-divider"></div>
+        <div class="side-label">أدوات التحرير</div>
+        <button class="tool-item" id="addMediaBtn"><span class="tool-icon purple">＋</span><span><b>إضافة وسائط</b><small>فيديوهات من جهازك</small></span></button>
+        <button class="tool-item" id="splitBtn" disabled><span class="tool-icon">✂</span><span><b>تقسيم عند المؤشر</b><small>تقسيم المقطع المحدد</small></span></button>
+        <button class="tool-item" id="deleteBtn" disabled><span class="tool-icon">⌫</span><span><b>حذف المقطع</b><small>إزالة من المشروع</small></span></button>
+        <div class="sidebar-footer"><span class="status-dot"></span> معالجة محلية داخل المتصفح</div>
+      </aside>
+      <section class="workspace">
+        <div class="workspace-heading"><div><div class="eyebrow">CLIP AI STUDIO</div><h1 id="pageTitle">محرر الفيديو</h1><p id="pageSubtitle">تحكم كامل بمقاطعك، مع بقاء ملفاتك على جهازك.</p></div><button class="new-project" id="addMediaTop">＋ استيراد فيديوهات</button></div>
+        <section class="editor-grid">
+          <div class="preview-panel">
+            <div class="panel-top"><span>المعاينة</span><div class="preview-meta"><span id="ratioLabel">16:9</span><span class="quality-pill">معاينة محلية</span></div></div>
+            <div class="preview-stage" id="previewStage"><div class="empty-state" id="emptyState"><div class="upload-symbol">↑</div><h2>ابدأ مشروعك</h2><p>استورد فيديو أو أكثر لبناء الخط الزمني</p><button class="primary-btn" id="chooseFileBtn">اختيار فيديوهات</button><small>لا يتم رفع ملفاتك إلى خادم في هذه النسخة</small></div><video id="videoPreview" controls playsinline hidden></video></div>
+            <div class="preview-controls"><span id="timeReadout">00:00 / 00:00</span><div><button class="small-btn" id="playBtn" disabled>▶ تشغيل</button><button class="small-btn" id="stopBtn" disabled>■ إيقاف</button></div></div>
+          </div>
+          <aside class="inspector">
+            <h3>إعدادات المشروع</h3>
+            <div class="setting-group"><label for="aspectSelect">نسبة الأبعاد</label><select id="aspectSelect"><option value="16:9">16:9 — أفقي</option><option value="9:16">9:16 — عمودي</option><option value="1:1">1:1 — مربع</option></select></div>
+            <div class="setting-group"><label for="qualitySelect">جودة التصدير</label><select id="qualitySelect"><option value="1080">1080p</option><option value="720">720p</option><option value="480">480p</option></select></div>
+            <div class="setting-group"><label for="fpsSelect">معدل الإطارات</label><select id="fpsSelect"><option value="30">30 FPS</option><option value="25">25 FPS</option><option value="60">60 FPS</option></select></div>
+            <div class="setting-note">تُطبّق هذه الإعدادات عند التصدير، وليس على شكل المعاينة فقط.</div>
+            <button class="secondary-btn" id="saveProjectBtn">حفظ ملف المشروع</button>
+            <button class="secondary-btn" id="loadProjectBtn">فتح ملف مشروع</button>
+          </aside>
+        </section>
+        <section class="timeline-panel">
+          <div class="timeline-heading"><div><h3>الخط الزمني</h3><span id="clipCount">لا توجد مقاطع</span></div><div class="timeline-actions"><button class="small-btn" id="moveLeftBtn" disabled>↑ تقديم</button><button class="small-btn" id="moveRightBtn" disabled>↓ تأخير</button></div></div>
+          <div class="timeline-ruler"><span>بداية المشروع</span><span>المقاطع مرتبة من اليمين إلى اليسار</span><span>النهاية</span></div>
+          <div id="videoTrack" class="clip-list"><div class="track-placeholder">أضف فيديو ليظهر هنا في الخط الزمني</div></div>
+          <div class="timeline-footer"><span>حدد مقطعًا ثم اضبط البداية والنهاية من لوحة الخصائص.</span><span id="totalDuration">00:00</span></div>
+        </section>
+        <section class="export-panel"><div><b>محرك التصدير</b><p id="engineStatus">سيتم تجهيز محرك FFmpeg داخل المتصفح عند أول تصدير.</p></div><div class="progress-wrap" id="progressWrap" hidden><progress id="exportProgress" max="100" value="0"></progress><span id="progressText">0%</span></div></section>
+        <footer>CLIP AI © 2026 <span>نسخة ويب قيد البناء — لا تُغلق الصفحة أثناء التصدير</span></footer>
       </section>
-      <section class="timeline-panel">
-        <div class="timeline-heading"><div><h3>الخط الزمني</h3><span id="clipCount">لا توجد مقاطع</span></div><div class="timeline-actions"><button class="small-btn" id="splitBtn" disabled>✂ تقسيم</button><button class="small-btn" id="removeBtn" disabled>حذف</button></div></div>
-        <div class="timeline-ruler"><span>00:00</span><span>00:10</span><span>00:20</span><span>00:30</span><span>00:40</span><span>00:50</span></div>
-        <div class="track-row"><div class="track-label">فيديو</div><div class="track-content" id="videoTrack"><div class="track-placeholder">أضف فيديو ليظهر هنا في الخط الزمني</div></div></div>
-        <div class="track-row"><div class="track-label">صوت</div><div class="track-content audio-track"><span>مسار الصوت — قريبًا</span></div></div>
-      </section>
-      <section class="inspector"><div><h3>إعدادات المشروع</h3><p>اختر أبعاد الفيديو المستهدف.</p></div><div class="setting-group"><label for="aspectSelect">نسبة الأبعاد</label><select id="aspectSelect"><option value="16:9">16:9 — أفقي</option><option value="9:16">9:16 — عمودي</option><option value="1:1">1:1 — مربع</option></select></div><div class="setting-group"><label for="qualitySelect">جودة الإخراج</label><select id="qualitySelect"><option>1080p</option><option>720p</option><option>480p</option></select></div></section>
-      <footer>CLIP AI © 2026 <span>نبني تجربة تحرير احترافية خطوة بخطوة</span></footer>
-    </section>
-  </main>
-  <input id="fileInput" type="file" accept="video/*" hidden />
-  <div class="toast" id="toast" role="status"></div>
-  <script src="./app.js"></script>
+    </main>
+    <input id="fileInput" type="file" accept="video/*" multiple hidden />
+    <input id="projectInput" type="file" accept=".clipai,application/json" hidden />
+    <div class="toast" id="toast" role="status" aria-live="polite"></div>
+    <dialog id="infoDialog"><div class="dialog-content"><button class="dialog-close" id="closeDialog">×</button><h2 id="dialogTitle">معلومة</h2><p id="dialogText"></p></div></dialog>
+  </div>
+  <script type="module" src="/src/main.js"></script>
 </body>
 </html>

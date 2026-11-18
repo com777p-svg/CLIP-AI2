@@ -11,6 +11,7 @@ Browser-based Arabic RTL editor built with Vite and FFmpeg.wasm.
 - Save/load a `.clipai` project metadata file, including clip trim points and export settings. Original video and audio media remain local and must be re-selected/re-imported when reopening a project.
 - No video uploads or account credentials are sent to a server.
 - Development and preview servers bind to localhost by default, rather than exposing the editor to the local network.
+- Security note: the Vite development toolchain currently receives a high-severity `picomatch` ReDoS advisory through transitive development dependencies. It is not included in the production bundle; keep the development server bound to localhost. The full audit report is retained as a CI artifact while the production dependency audit is enforced.
 
 ## Run
 ```bash

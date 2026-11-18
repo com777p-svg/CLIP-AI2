@@ -1,17 +1,24 @@
-# CLIP AI Web — Foundation
+# CLIP AI Web Studio
 
-This folder contains the first browser-based CLIP AI Studio foundation.
+Browser-based Arabic RTL editor built with Vite and FFmpeg.wasm.
 
-## Current scope
-- Responsive Arabic RTL editor workspace.
-- Local video selection and browser preview using a temporary object URL.
-- Basic project aspect-ratio selector for the preview workspace.
-- Starter timeline layout and tool navigation placeholders.
+## Implemented in this milestone
+- Import multiple local video files and preview the selected clip.
+- Timeline ordering, removal, splitting at the playhead, and per-clip in/out trimming.
+- MP4 export in-browser with FFmpeg.wasm; output dimensions, frame rate and encoding settings are applied to exported media.
+- Save/load a `.clipai` project settings file. Original media remains local and must be re-selected when reopening a project.
+- No video uploads or account credentials are sent to a server.
 
-## Not implemented yet
-- Real timeline editing, split/trim persistence, multi-track editing.
-- Video rendering/export, cloud projects, accounts, URL ingestion, AI editing, publishing.
-- The quality selector is currently a UI placeholder and does not change output.
+## Run
+```bash
+npm install
+npm run dev
+npm run build
+npm run preview
+```
 
-## Run locally
-Open `index.html` in a modern browser, or serve this folder with any static web server.
+## Limitations
+- FFmpeg.wasm core is downloaded from unpkg on first export; internet is required for initial engine loading. Export can exceed available RAM on long/high-resolution videos, especially on phones.
+- This milestone is a single video sequence editor, not a full multi-track compositor.
+- AI auto-editing, AI Lab execution, URL import, cloud accounts/projects, and social publishing are not active. They require authenticated backend services, provider credentials, security controls, and integration tests.
+- HTTPS deployment still requires repository hosting configuration and a successful deployment run.

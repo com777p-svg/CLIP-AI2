@@ -10,6 +10,7 @@ Browser-based Arabic RTL editor built with Vite and FFmpeg.wasm.
 - MP4 export in-browser with FFmpeg.wasm; output dimensions are even-numbered for H.264 compatibility, uses broadly supported yuv420p pixel format, and applies frame rate and encoding settings.
 - Save/load a `.clipai` project metadata file, including clip trim points and export settings. Original video and audio media remain local and must be re-selected/re-imported when reopening a project.
 - No video uploads or account credentials are sent to a server.
+- Development and preview servers bind to localhost by default, rather than exposing the editor to the local network.
 
 ## Run
 ```bash

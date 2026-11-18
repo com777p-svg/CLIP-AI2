@@ -1,0 +1,54 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="theme-color" content="#0b0b10" />
+  <title>CLIP AI — Video Studio</title>
+  <link rel="stylesheet" href="./styles.css" />
+</head>
+<body>
+  <header class="topbar">
+    <a class="brand" href="#" aria-label="CLIP AI home"><span class="brand-mark">C</span><span>CLIP <b>AI</b></span></a>
+    <div class="project-name"><span class="live-dot"></span> مشروع جديد <span class="muted">·</span> لم يتم الحفظ</div>
+    <div class="top-actions"><button class="quiet-btn" id="helpBtn">مساعدة</button><button class="export-btn" id="exportBtn" disabled>تصدير الفيديو <span>↗</span></button></div>
+  </header>
+  <main class="app-shell">
+    <aside class="sidebar">
+      <div class="side-label">مساحة العمل</div>
+      <button class="nav-item active"><span>▣</span> المحرر</button>
+      <button class="nav-item" data-soon="مختبر الذكاء الاصطناعي"><span>✧</span> مختبر AI <small>قريبًا</small></button>
+      <button class="nav-item" data-soon="مشاريعي"><span>▤</span> مشاريعي</button>
+      <div class="side-divider"></div>
+      <div class="side-label">الأدوات</div>
+      <button class="tool-item" data-soon="المونتاج التلقائي"><span class="tool-icon purple">✦</span><span><b>المونتاج التلقائي</b><small>دع الذكاء الاصطناعي يحرر لك</small></span></button>
+      <button class="tool-item" data-soon="النصوص والترجمة"><span class="tool-icon">T</span><span><b>النصوص والترجمة</b><small>عناوين وترجمة تلقائية</small></span></button>
+      <button class="tool-item" data-soon="الصوت والموسيقى"><span class="tool-icon">♫</span><span><b>الصوت والموسيقى</b><small>مسارات صوتية ومزج</small></span></button>
+      <button class="tool-item" data-soon="المؤثرات والانتقالات"><span class="tool-icon">◇</span><span><b>المؤثرات</b><small>انتقالات وفلاتر</small></span></button>
+      <div class="sidebar-footer"><span class="status-dot"></span> نسخة تأسيسية قيد التطوير</div>
+    </aside>
+    <section class="workspace">
+      <div class="workspace-heading"><div><div class="eyebrow">CLIP AI STUDIO</div><h1>محرر الفيديو</h1><p>اصنع فيديوهاتك بطريقتك، بمساعدة الذكاء الاصطناعي.</p></div><button class="new-project" id="addMediaBtn">＋ إضافة وسائط</button></div>
+      <section class="preview-panel">
+        <div class="panel-top"><span>المعاينة</span><div class="preview-meta"><span id="ratioLabel">16:9</span><span class="quality-pill">مساحة العمل</span></div></div>
+        <div class="preview-stage" id="previewStage">
+          <div class="empty-state" id="emptyState"><div class="upload-symbol">↑</div><h2>ابدأ مشروعك الأول</h2><p>أضف فيديو من جهازك لبدء التحرير</p><button class="primary-btn" id="chooseFileBtn">اختيار فيديو</button><small>ملفاتك تبقى على جهازك في هذه النسخة التجريبية</small></div>
+          <video id="videoPreview" controls playsinline hidden></video>
+        </div>
+        <div class="preview-controls"><span id="timeReadout">00:00 / 00:00</span><span class="muted">المعاينة المحلية</span></div>
+      </section>
+      <section class="timeline-panel">
+        <div class="timeline-heading"><div><h3>الخط الزمني</h3><span id="clipCount">لا توجد مقاطع</span></div><div class="timeline-actions"><button class="small-btn" id="splitBtn" disabled>✂ تقسيم</button><button class="small-btn" id="removeBtn" disabled>حذف</button></div></div>
+        <div class="timeline-ruler"><span>00:00</span><span>00:10</span><span>00:20</span><span>00:30</span><span>00:40</span><span>00:50</span></div>
+        <div class="track-row"><div class="track-label">فيديو</div><div class="track-content" id="videoTrack"><div class="track-placeholder">أضف فيديو ليظهر هنا في الخط الزمني</div></div></div>
+        <div class="track-row"><div class="track-label">صوت</div><div class="track-content audio-track"><span>مسار الصوت — قريبًا</span></div></div>
+      </section>
+      <section class="inspector"><div><h3>إعدادات المشروع</h3><p>اختر أبعاد الفيديو المستهدف.</p></div><div class="setting-group"><label for="aspectSelect">نسبة الأبعاد</label><select id="aspectSelect"><option value="16:9">16:9 — أفقي</option><option value="9:16">9:16 — عمودي</option><option value="1:1">1:1 — مربع</option></select></div><div class="setting-group"><label for="qualitySelect">جودة الإخراج</label><select id="qualitySelect"><option>1080p</option><option>720p</option><option>480p</option></select></div></section>
+      <footer>CLIP AI © 2026 <span>نبني تجربة تحرير احترافية خطوة بخطوة</span></footer>
+    </section>
+  </main>
+  <input id="fileInput" type="file" accept="video/*" hidden />
+  <div class="toast" id="toast" role="status"></div>
+  <script src="./app.js"></script>
+</body>
+</html>

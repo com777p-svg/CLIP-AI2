@@ -1,0 +1,41 @@
+name: Build CLIP AI Web
+on:
+  pull_request:
+    paths: ['web/**', '.github/workflows/clip-ai-web-build.yml']
+  push:
+    branches: [main, feature/web-editor-foundation]
+    paths: ['web/**', '.github/workflows/clip-ai-web-build.yml']
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: web
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+        with:
+          node-version: 22
+      - name: Generate reproducible dependency lock
+        run: npm install --package-lock-only --ignore-scripts --no-audit
+      - name: Record dependency security audit
+        run: npm audit --json > npm-audit.json || true
+      - name: Install locked dependencies without lifecycle scripts
+        run: npm ci --ignore-scripts
+      - name: Build production bundle
+        run: npm run build
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: clip-ai-web-security-audit
+          if-no-files-found: error
+          path: |
+            web/dist/
+            web/package-lock.json
+            web/npm-audit.json
+      - name: Block high or critical production dependency vulnerabilities
+        run: npm audit --omit=dev --audit-level=high

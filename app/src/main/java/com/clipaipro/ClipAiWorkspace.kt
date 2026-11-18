@@ -35,6 +35,7 @@ import androidx.compose.ui.viewinterop.AndroidView
 import androidx.media3.common.MediaItem
 import androidx.media3.exoplayer.ExoPlayer
 import androidx.media3.ui.PlayerView
+import com.clipaipro.editor.export.VideoExportEngine
 import java.util.UUID
 
 private val Ink = Color(0xFF0D0C13)
@@ -71,6 +72,24 @@ private fun ClipAiWorkspace() {
     var isPlaying by remember { mutableStateOf(false) }
     var aspect by remember { mutableStateOf("9:16") }
     var exportQuality by remember { mutableStateOf("1080p") }
+    var exportStatus by remember { mutableStateOf("جاهز للتصدير") }
+    var isExporting by remember { mutableStateOf(false) }
+    val exportEngine = remember(context) {
+        VideoExportEngine(
+            context = context,
+            onCompleted = { file ->
+                isExporting = false
+                exportStatus = "اكتمل التصدير: ${file.name}"
+            },
+            onError = { error ->
+                isExporting = false
+                exportStatus = "فشل التصدير: ${error.message ?: "خطأ غير معروف"}"
+            }
+        )
+    }
+    DisposableEffect(exportEngine) {
+        onDispose { exportEngine.cancel() }
+    }
     val selected = clips.firstOrNull { it.id == selectedId }
     val totalDuration = clips.sumOf { it.durationMs }.coerceAtLeast(1L)
 
@@ -120,7 +139,25 @@ private fun ClipAiWorkspace() {
                         IconButton(onClick = { }, enabled = false) {
                             Icon(Icons.Default.Redo, contentDescription = "إعادة - قريباً", tint = Muted)
                         }
-                        TextButton(onClick = { }, enabled = false) { Text("تصدير قريباً", color = Muted) }
+                        TextButton(
+                            onClick = {
+                                if (!isExporting && clips.isNotEmpty()) {
+                                    runCatching {
+                                        isExporting = true
+                                        exportStatus = "جارٍ تجهيز الفيديو..."
+                                        exportEngine.export(clips.map {
+                                            VideoExportEngine.SourceClip(it.uri, it.trimStartMs, it.trimEndMs)
+                                        })
+                                    }.onFailure {
+                                        isExporting = false
+                                        exportStatus = "تعذر بدء التصدير: ${it.message ?: "خطأ"}"
+                                    }
+                                }
+                            },
+                            enabled = clips.isNotEmpty() && !isExporting
+                        ) {
+                            Text(if (isExporting) "جارٍ التصدير" else "تصدير MP4", color = Accent)
+                        }
                     },
                     colors = TopAppBarDefaults.topAppBarColors(containerColor = Ink, titleContentColor = Color.White)
                 )
@@ -159,7 +196,7 @@ private fun ClipAiWorkspace() {
                             Text(aspect, color = Accent, fontSize = 12.sp)
                         }
                         if (selected != null) {
-                            VideoPreview(selected.uri, isPlaying) { isPlaying = it }
+                            VideoPreview(selected.uri, selected.trimStartMs, selected.trimEndMs, isPlaying) { isPlaying = it }
                         } else {
                             Box(Modifier.fillMaxWidth().height(190.dp).background(Ink, RoundedCornerShape(14.dp)),
                                 contentAlignment = Alignment.Center) {
@@ -302,11 +339,20 @@ private fun formatTime(ms: Long): String {
 }
 
 @Composable
-private fun VideoPreview(uri: Uri, playing: Boolean, onPlayingChange: (Boolean) -> Unit) {
+private fun VideoPreview(uri: Uri, trimStartMs: Long, trimEndMs: Long, playing: Boolean, onPlayingChange: (Boolean) -> Unit) {
     val context = LocalContext.current
-    val player = remember(uri) {
+    val player = remember(uri, trimStartMs, trimEndMs) {
+        val item = MediaItem.Builder()
+            .setUri(uri)
+            .setClippingConfiguration(
+                MediaItem.ClippingConfiguration.Builder()
+                    .setStartPositionMs(trimStartMs)
+                    .setEndPositionMs(trimEndMs)
+                    .build()
+            )
+            .build()
         ExoPlayer.Builder(context).build().apply {
-            setMediaItem(MediaItem.fromUri(uri))
+            setMediaItem(item)
             prepare()
             playWhenReady = false
         }

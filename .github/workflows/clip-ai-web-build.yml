@@ -23,6 +23,8 @@ jobs:
           node-version: 22
       - name: Generate reproducible dependency lock
         run: npm install --package-lock-only --ignore-scripts --no-audit
+      - name: Apply compatible dependency security fixes
+        run: npm audit fix --package-lock-only --ignore-scripts
       - name: Record dependency security audit
         run: npm audit --json > npm-audit.json || true
       - name: Install locked dependencies without lifecycle scripts
@@ -32,7 +34,10 @@ jobs:
       - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
         with:
           name: clip-ai-web-security-audit
+          if-no-files-found: error
           path: |
             web/dist/
             web/package-lock.json
             web/npm-audit.json
+      - name: Block high or critical dependency vulnerabilities
+        run: npm audit --audit-level=high

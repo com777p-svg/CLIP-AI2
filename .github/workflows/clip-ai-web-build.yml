@@ -15,13 +15,24 @@ jobs:
       run:
         working-directory: web
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
         with:
-          node-version: 20
-      - run: npm install
-      - run: npm run build
-      - uses: actions/upload-artifact@v4
+          persist-credentials: false
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
         with:
-          name: clip-ai-web-dist
-          path: web/dist/
+          node-version: 22
+      - name: Generate reproducible dependency lock
+        run: npm install --package-lock-only --ignore-scripts --no-audit
+      - name: Record dependency security audit
+        run: npm audit --json > npm-audit.json || true
+      - name: Install locked dependencies without lifecycle scripts
+        run: npm ci --ignore-scripts
+      - name: Build production bundle
+        run: npm run build
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: clip-ai-web-security-audit
+          path: |
+            web/dist/
+            web/package-lock.json
+            web/npm-audit.json

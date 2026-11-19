@@ -31,6 +31,11 @@
       </aside>
       <section class="workspace">
         <div class="workspace-heading"><div><div class="eyebrow">CLIP AI STUDIO</div><h1 id="pageTitle">محرر الفيديو</h1><p id="pageSubtitle">تحكم كامل بمقاطعك، مع بقاء ملفاتك على جهازك.</p></div><button class="new-project" id="addMediaTop">＋ استيراد فيديوهات</button></div>
+        <section class="url-import-panel" aria-labelledby="urlImportTitle">
+          <div class="url-import-copy"><b id="urlImportTitle">استيراد من رابط</b><span>افحص الرابط أولاً قبل فتحه أو استخدامه</span></div>
+          <div class="url-import-controls"><input id="videoUrlInput" type="url" inputmode="url" maxlength="2048" placeholder="الصق رابط YouTube أو Twitch أو منصة أخرى" aria-label="رابط الفيديو"><button class="primary-btn" id="inspectUrlBtn" type="button">فحص الرابط</button></div>
+          <p id="urlImportStatus" class="url-import-status" role="status" aria-live="polite">سيتم التحقق من صيغة الرابط والمنصة قبل أي محاولة استيراد.</p>
+        </section>
         <section class="editor-grid">
           <div class="preview-panel">
             <div class="panel-top"><span>المعاينة</span><div class="preview-meta"><span id="ratioLabel">16:9</span><span class="quality-pill">معاينة محلية</span></div></div>

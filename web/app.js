@@ -3,6 +3,23 @@ import './styles.css';
 const $ = (id) => document.getElementById(id);
 const state = { clips: [], selected: null, ffmpeg: null, exporting: false, projectName: 'مشروعي الجديد', pendingProject: null, musicFile: null, musicUrl: null, ffmpegLogs: [] };
 const input = $('fileInput'), video = $('videoPreview'), empty = $('emptyState');
+const urlInput = $('videoUrlInput'), inspectUrlBtn = $('inspectUrlBtn'), urlImportStatus = $('urlImportStatus');
+async function inspectVideoUrl(){
+ const raw=(urlInput.value||'').trim();
+ if(!raw){urlImportStatus.textContent='ألصق رابطًا أولاً.';return}
+ inspectUrlBtn.disabled=true;urlImportStatus.textContent='جارٍ فحص الرابط...';
+ try{
+  const response=await fetch('/.netlify/functions/inspect-video-url',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({url:raw})});
+  const data=await response.json().catch(()=>({}));
+  if(!response.ok||!data.ok)throw new Error(data.error||'تعذر التحقق من الرابط');
+  urlImportStatus.textContent=data.message;
+ }catch(error){
+  urlImportStatus.textContent=error.message||'تعذر الاتصال بخدمة فحص الروابط. أعد المحاولة بعد نشر تحديث الموقع.';
+ }finally{inspectUrlBtn.disabled=false}
+}
+inspectUrlBtn.addEventListener('click',inspectVideoUrl);
+urlInput.addEventListener('keydown',event=>{if(event.key==='Enter')inspectVideoUrl()});
+
 let toastTimer;
 function toast(message){$('toast').textContent=message;$('toast').classList.add('show');clearTimeout(toastTimer);toastTimer=setTimeout(()=>$('toast').classList.remove('show'),3000)}
 function fmt(seconds){if(!Number.isFinite(seconds))return '00:00';const n=Math.max(0,Math.floor(seconds));return String(Math.floor(n/60)).padStart(2,'0')+':'+String(n%60).padStart(2,'0')}

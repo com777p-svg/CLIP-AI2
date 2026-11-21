@@ -1,5 +1,6 @@
 import './styles.css';
 import { detectLocalComputeCapabilities, classifyLocalCompute } from './local-compute.js';
+import { scanLocalVideoScenes } from './local-scene-scan.js';
 
 
 const $ = (id) => document.getElementById(id);
@@ -22,6 +23,26 @@ async function inspectVideoUrl(){
 inspectUrlBtn.addEventListener('click',inspectVideoUrl);
 urlInput.addEventListener('keydown',event=>{if(event.key==='Enter')inspectVideoUrl()});
 
+
+
+async function scanSelectedScenes(){
+ const clip=selected(),button=$('scanScenesBtn'),summary=$('localComputeSummary');
+ if(!clip?.file){toast('أضف فيديو من جهازك أولاً');return}
+ button.disabled=true;button.textContent='جارٍ فحص المشاهد...';
+ summary.textContent='تُفحص عينات مرئية من الفيديو محليًا على جهازك. لا تغادر الصفحة أثناء الفحص.';
+ try{
+  const result=await scanLocalVideoScenes(clip.file,(done,total)=>{
+   summary.textContent='فحص محلي للمشاهد: '+done+' من '+total+' عينة.';
+  });
+  const moments=result.scenes||[];
+  summary.textContent='اكتمل الفحص المحلي: '+result.processed+' عينة، ووجد '+moments.length+' انتقالات بصرية محتملة. هذه ليست اختيارات AI للنشر بعد.';
+  if(moments.length){
+   const times=moments.slice(0,8).map(item=>Math.floor(item.time/60).toString().padStart(2,'0')+':'+Math.floor(item.time%60).toString().padStart(2,'0'));
+   toast('انتقالات بصرية محتملة: '+times.join('، '));
+  }else toast('لم تظهر انتقالات بصرية واضحة في العينات');
+ }catch(error){summary.textContent=error.message||'تعذر فحص الفيديو على هذا الجهاز.';toast('تعذر فحص المشاهد محليًا')}
+ finally{button.disabled=!selected()?.file;button.textContent='إعادة فحص المشاهد'}
+}
 
 async function checkLocalDevice(){
  const button=$('checkDeviceBtn'),summary=$('localComputeSummary'),results=$('localComputeResults');
@@ -55,7 +76,7 @@ function toast(message){$('toast').textContent=message;$('toast').classList.add(
 function fmt(seconds){if(!Number.isFinite(seconds))return '00:00';const n=Math.max(0,Math.floor(seconds));return String(Math.floor(n/60)).padStart(2,'0')+':'+String(n%60).padStart(2,'0')}
 function uid(){return crypto.randomUUID?crypto.randomUUID():String(Date.now())+Math.random()}
 function selected(){return state.clips.find(c=>c.id===state.selected)}
-function updateButtons(){const has=state.clips.length>0,sel=!!selected();$('removeAudioBtn').disabled=!state.musicFile;$('exportBtn').disabled=!has||state.exporting;$('splitBtn').disabled=!sel;$('deleteBtn').disabled=!sel;$('moveLeftBtn').disabled=!sel||state.clips.findIndex(c=>c.id===state.selected)===0;$('moveRightBtn').disabled=!sel||state.clips.findIndex(c=>c.id===state.selected)===state.clips.length-1;$('playBtn').disabled=!sel;$('stopBtn').disabled=!sel;$('clipCount').textContent=state.clips.length?state.clips.length+' مقطع':'لا توجد مقاطع';$('totalDuration').textContent=fmt(state.clips.reduce((a,c)=>a+c.end-c.start,0))}
+function updateButtons(){const has=state.clips.length>0,sel=!!selected();$('scanScenesBtn').disabled=!selected()?.file;$('removeAudioBtn').disabled=!state.musicFile;$('exportBtn').disabled=!has||state.exporting;$('splitBtn').disabled=!sel;$('deleteBtn').disabled=!sel;$('moveLeftBtn').disabled=!sel||state.clips.findIndex(c=>c.id===state.selected)===0;$('moveRightBtn').disabled=!sel||state.clips.findIndex(c=>c.id===state.selected)===state.clips.length-1;$('playBtn').disabled=!sel;$('stopBtn').disabled=!sel;$('clipCount').textContent=state.clips.length?state.clips.length+' مقطع':'لا توجد مقاطع';$('totalDuration').textContent=fmt(state.clips.reduce((a,c)=>a+c.end-c.start,0))}
 function persist(){try{const meta={format:'CLIPAI_PROJECT_V1',name:$('projectName').value,aspect:$('aspectSelect').value,quality:$('qualitySelect').value,fps:$('fpsSelect').value,musicVolume:Number($('musicVolume').value),brightness:Number($('brightness').value),contrast:Number($('contrast').value),saturation:Number($('saturation').value),clips:state.clips.map(c=>({name:c.name,start:c.start,end:c.end,duration:c.duration}))};localStorage.setItem('clipai-project-meta',JSON.stringify(meta));$('saveState').textContent='حُفظت بيانات المشروع'}catch{$('saveState').textContent='الحفظ المحلي غير متاح'}}
 function render(){
  const list=$('videoTrack');list.innerHTML='';
@@ -75,7 +96,7 @@ function render(){
  });
  updateButtons();persist();
 }
-function selectClip(id){state.selected=id;const c=selected();if(!c)return;video.src=c.url;video.hidden=false;empty.hidden=true;video.currentTime=Math.min(c.start,Math.max(0,c.end-.05));$('seekSlider').max=String(c.duration||0);$('seekSlider').value=String(c.start);video.onloadedmetadata=()=>{video.currentTime=Math.min(c.start,Math.max(0,c.end-.05));$('seekSlider').max=String(c.duration||0);$('seekSlider').value=String(c.start);$('timeReadout').textContent=fmt(video.currentTime)+' / '+fmt(c.duration)};render()}
+function selectClip(id){state.selected=id;$('scanScenesBtn').disabled=!selected()?.file;const c=selected();if(!c)return;video.src=c.url;video.hidden=false;empty.hidden=true;video.currentTime=Math.min(c.start,Math.max(0,c.end-.05));$('seekSlider').max=String(c.duration||0);$('seekSlider').value=String(c.start);video.onloadedmetadata=()=>{video.currentTime=Math.min(c.start,Math.max(0,c.end-.05));$('seekSlider').max=String(c.duration||0);$('seekSlider').value=String(c.start);$('timeReadout').textContent=fmt(video.currentTime)+' / '+fmt(c.duration)};render()}
 function removeClip(id){const i=state.clips.findIndex(c=>c.id===id);if(i<0)return;URL.revokeObjectURL(state.clips[i].url);state.clips.splice(i,1);state.selected=state.clips[Math.max(0,i-1)]?.id||null;if(state.selected)selectClip(state.selected);else render();toast('تم حذف المقطع')}
 function moveClip(index,delta){const next=index+delta;if(next<0||next>=state.clips.length)return;[state.clips[index],state.clips[next]]=[state.clips[next],state.clips[index]];render()}
 function addFiles(files){for(const file of files){if(!file.type.startsWith('video/'))continue;const url=URL.createObjectURL(file);const clip={id:uid(),file,url,name:file.name,start:0,end:0,duration:0};const probe=document.createElement('video');probe.preload='metadata';probe.src=url;probe.onloadedmetadata=()=>{clip.duration=probe.duration;clip.end=probe.duration;const saved=state.pendingProject?.clips?.find(item=>item.name===clip.name);if(saved){clip.start=Math.max(0,Math.min(Number(saved.start)||0,Math.max(0,clip.duration-.1)));clip.end=Math.max(clip.start+.1,Math.min(Number(saved.end)||clip.duration,clip.duration));}if(!state.selected)state.selected=clip.id;render();if(state.selected===clip.id)selectClip(clip.id)};probe.onerror=()=>toast('تعذر قراءة '+file.name);state.clips.push(clip)}if(!files.length)return;render();toast('تمت إضافة '+files.length+' ملف/ملفات للخط الزمني')}
@@ -106,5 +127,6 @@ document.querySelectorAll('[data-tab]').forEach(b=>b.onclick=()=>{const tab=b.da
 window.addEventListener('beforeunload',()=>{state.clips.forEach(c=>URL.revokeObjectURL(c.url));if(state.musicUrl)URL.revokeObjectURL(state.musicUrl)});
 try{const recovered=JSON.parse(localStorage.getItem('clipai-project-meta')||'null');if(recovered?.format==='CLIPAI_PROJECT_V1'){state.pendingProject=recovered;$('projectName').value=recovered.name||$('projectName').value;if(recovered.aspect)$('aspectSelect').value=recovered.aspect;if(recovered.quality)$('qualitySelect').value=recovered.quality;if(recovered.fps)$('fpsSelect').value=recovered.fps;if(recovered.musicVolume!==undefined)$('musicVolume').value=String(recovered.musicVolume);if(recovered.brightness!==undefined)$('brightness').value=String(recovered.brightness);if(recovered.contrast!==undefined)$('contrast').value=String(recovered.contrast);if(recovered.saturation!==undefined)$('saturation').value=String(recovered.saturation);applyEffects();$('ratioLabel').textContent=$('aspectSelect').value;toast('تم استرجاع بيانات مشروعك السابق؛ أعد استيراد الفيديوهات والصوت الأصليين.')}}catch{localStorage.removeItem('clipai-project-meta')}
 $('checkDeviceBtn')?.addEventListener('click',checkLocalDevice);
+$('scanScenesBtn')?.addEventListener('click',scanSelectedScenes);
 checkLocalDevice();
 render();

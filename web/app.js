@@ -1,11 +1,13 @@
 import './styles.css';
 import { detectLocalComputeCapabilities, classifyLocalCompute } from './local-compute.js';
-import { scanLocalVideoScenes } from './local-scene-scan.js';\nimport { transcribeLocalVideo } from './local-transcription.js';
+import { scanLocalVideoScenes } from './local-scene-scan.js';
+import { transcribeLocalVideo } from './local-transcription.js';
 
 
 const $ = (id) => document.getElementById(id);
 const state = { clips: [], selected: null, ffmpeg: null, exporting: false, projectName: 'مشروعي الجديد', pendingProject: null, musicFile: null, musicUrl: null, ffmpegLogs: [] };
-const input = $('fileInput'), video = $('videoPreview'), empty = $('emptyState');\nwindow.addEventListener('clipai:toast', event => toast(event.detail?.message || ''));\nwindow.addEventListener('clipai:points-updated', event => { const el = $('pointsBalance'); if (el) el.textContent = String(event.detail?.points ?? 0) + ' نقطة'; });
+const input = $('fileInput'), video = $('videoPreview'), empty = $('emptyState');
+window.addEventListener('clipai:toast', event => toast(event.detail?.message || ''));\nwindow.addEventListener('clipai:points-updated', event => { const el = $('pointsBalance'); if (el) el.textContent = String(event.detail?.points ?? 0) + ' نقطة'; });
 const urlInput = $('videoUrlInput'), inspectUrlBtn = $('inspectUrlBtn'), urlImportStatus = $('urlImportStatus');
 async function inspectVideoUrl(){
  const raw=(urlInput.value||'').trim();
@@ -44,7 +46,21 @@ async function scanSelectedScenes(){
  finally{button.disabled=!selected()?.file;button.textContent='إعادة فحص المشاهد'}
 }
 
-async function transcribeSelectedVideo(){\n const clip=selected(),button=$('transcribeBtn'),status=$('transcriptStatus'),output=$('transcriptOutput');\n if(!clip?.file){toast('أضف فيديو من جهازك أولاً');return}\n button.disabled=true;button.textContent='جارٍ التفريغ...';output.hidden=true;output.textContent='';\n try{\n  const result=await transcribeLocalVideo(clip.file,(message)=>{status.textContent=message});\n  output.textContent=result.segments.map(s=>'['+fmt(s.start)+'–'+fmt(s.end)+'] '+s.text).join('\\n');\n  output.hidden=false;\n  status.textContent='اكتمل التفريغ المحلي. اللغة المقدّرة من شكل النص: '+(result.languageHint==='ar'?'العربية':result.languageHint==='en'?'الإنجليزية':'غير محددة')+'؛ راجع النص قبل استخدامه كترجمة أو ترجمة مكتوبة.';\n  toast('اكتمل تفريغ الكلام من الفيديو');\n }catch(error){status.textContent=error.message||'تعذر تفريغ الصوت على هذا الجهاز.';toast('تعذر التفريغ المحلي')}\n finally{button.disabled=!selected()?.file;button.textContent='إعادة تفريغ الكلام'}\n}\n\nasync function checkLocalDevice(){
+async function transcribeSelectedVideo(){
+ const clip=selected(),button=$('transcribeBtn'),status=$('transcriptStatus'),output=$('transcriptOutput');
+ if(!clip?.file){toast('أضف فيديو من جهازك أولاً');return}
+ button.disabled=true;button.textContent='جارٍ التفريغ...';output.hidden=true;output.textContent='';
+ try{
+  const result=await transcribeLocalVideo(clip.file,message=>{status.textContent=message});
+  output.textContent=result.segments.map(s=>'['+fmt(s.start)+'–'+fmt(s.end)+'] '+s.text).join('\n');
+  output.hidden=false;
+  status.textContent='اكتمل التفريغ المحلي. اللغة المقدّرة من شكل النص: '+(result.languageHint==='ar'?'العربية':result.languageHint==='en'?'الإنجليزية':'غير محددة')+'؛ راجع النص قبل استخدامه كترجمة مكتوبة.';
+  toast('اكتمل تفريغ الكلام من الفيديو');
+ }catch(error){status.textContent=error.message||'تعذر تفريغ الصوت على هذا الجهاز.';toast('تعذر التفريغ المحلي')}
+ finally{button.disabled=!selected()?.file;button.textContent='إعادة تفريغ الكلام'}
+}
+
+async function checkLocalDevice(){
  const button=$('checkDeviceBtn'),summary=$('localComputeSummary'),results=$('localComputeResults');
  if(!button||!summary||!results)return;
  button.disabled=true;button.textContent='جارٍ الفحص...';summary.textContent='نفحص دعم WebGPU وWebAssembly والمهام الخلفية وقدرات المعالج.';

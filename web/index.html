@@ -81,9 +81,30 @@
     <input id="fileInput" type="file" accept="video/*" multiple hidden />
     <input id="audioInput" type="file" accept="audio/*" hidden />
     <input id="projectInput" type="file" accept=".clipai,application/json" hidden />
+    <section class="consent-gate" id="deviceConsentGate" role="dialog" aria-modal="true" aria-labelledby="deviceConsentTitle" aria-describedby="deviceConsentIntro">
+      <div class="consent-card">
+        <div class="consent-brand">CLIP <b>AI</b> · الشفافية أولاً</div>
+        <h2 id="deviceConsentTitle">هل ترغب في المساهمة بقدرات جهازك؟</h2>
+        <p id="deviceConsentIntro">قد يتيح CLIP AI مستقبلًا توزيع بعض مهام تحليل الفيديو على أجهزة مستخدمين متصلين، لكن المشاركة اختيارية بالكامل وليست شرطًا لاستخدام الموقع.</p>
+        <ul>
+          <li>لن نستخدم جهازك لمهام الآخرين إلا بعد موافقتك الواضحة.</li>
+          <li>يمكنك رفض المشاركة والاستمرار في استخدام المحرر، أو إيقاف المشاركة لاحقًا.</li>
+          <li>قد تستهلك المشاركة البطارية والبيانات والذاكرة وقد ترفع حرارة الجهاز.</li>
+          <li>الأجهزة قد تنقطع أو تتوقف؛ لذلك لا نضمن توفرها أو استمرار المهمة عليها.</li>
+          <li>لن نُخفي المعالجة في الخلفية، ولن نبدأ أي مهمة موزعة دون شرحها وطلب موافقتك عليها.</li>
+        </ul>
+        <p class="consent-note">مهم: ميزة توزيع المهام بين الأجهزة غير مفعّلة حاليًا في هذه النسخة. اختيارك الآن يحدد تفضيلك فقط، وأي مشاركة فعلية مستقبلًا ستحتاج موافقة منفصلة قبل كل مهمة.</p>
+        <div class="consent-actions">
+          <button id="consentOptIn" type="button" class="primary-btn">أوافق على المشاركة الاختيارية مستقبلًا</button>
+          <button id="consentContinueLocal" type="button" class="secondary-btn">استخدام CLIP AI دون مشاركة جهازي</button>
+        </div>
+        <small>يمكنك تغيير هذا الاختيار لاحقًا من إعدادات مشاركة الجهاز. هذا الإشعار لا يستبدل سياسة الخصوصية أو شروط الاستخدام.</small>
+      </div>
+    </section>
     <div class="toast" id="toast" role="status" aria-live="polite"></div>
     <dialog id="infoDialog"><div class="dialog-content"><button class="dialog-close" id="closeDialog">×</button><h2 id="dialogTitle">معلومة</h2><p id="dialogText"></p></div></dialog>
   </div>
+  <script type="module" src="./device-consent.js"></script>
   <script type="module" src="./app.js"></script>
 </body>
 </html>

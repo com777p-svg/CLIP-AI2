@@ -8,7 +8,7 @@ Before entering the editor, users see a clear choice:
 - **Opt in** to be asked about future participation. This is not blanket authorization.
 - **Local only** to continue using CLIP AI without offering their device to other users.
 
-The choice can be changed later. A future implementation must ask for separate, informed consent before each task and explain the task, expected duration, data transferred, approximate resource use, and how to stop it.
+Users who opt in receive a one-time 100-point welcome bonus in the current prototype. These points are stored in browser local storage, have no cash value, are not transferable or redeemable, and are not proof of actual device work. The bonus is granted once and is not clawed back if the user later switches to local-only. The choice can be changed later. A future implementation must ask for separate, informed consent before each task and explain the task, expected duration, data transferred, approximate resource use, and how to stop it.
 
 ## Non-negotiable safeguards
 

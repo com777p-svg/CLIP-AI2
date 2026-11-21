@@ -1,4 +1,6 @@
 import './styles.css';
+import { detectLocalComputeCapabilities, classifyLocalCompute } from './local-compute.js';
+
 
 const $ = (id) => document.getElementById(id);
 const state = { clips: [], selected: null, ffmpeg: null, exporting: false, projectName: 'مشروعي الجديد', pendingProject: null, musicFile: null, musicUrl: null, ffmpegLogs: [] };
@@ -19,6 +21,34 @@ async function inspectVideoUrl(){
 }
 inspectUrlBtn.addEventListener('click',inspectVideoUrl);
 urlInput.addEventListener('keydown',event=>{if(event.key==='Enter')inspectVideoUrl()});
+
+
+async function checkLocalDevice(){
+ const button=$('checkDeviceBtn'),summary=$('localComputeSummary'),results=$('localComputeResults');
+ if(!button||!summary||!results)return;
+ button.disabled=true;button.textContent='جارٍ الفحص...';summary.textContent='نفحص دعم WebGPU وWebAssembly والمهام الخلفية وقدرات المعالج.';
+ try{
+  const caps=await detectLocalComputeCapabilities();
+  const result=classifyLocalCompute(caps);
+  const labels={
+   webgpu:'WebGPU: '+(caps.webgpu?'متاح':'غير متاح'),
+   wasm:'WebAssembly: '+(caps.webAssembly?'متاح':'غير متاح'),
+   workers:'Workers: '+(caps.workers?'متاح':'غير متاح'),
+   decode:'فك الفيديو: '+(caps.videoDecoder?'WebCodecs':'عبر المتصفح'),
+   cores:'أنوية المعالج: '+caps.hardwareConcurrency,
+   memory:'ذاكرة الجهاز: '+(caps.deviceMemory?caps.deviceMemory+' GB تقريبًا':'غير معلومة')
+  };
+  results.replaceChildren(...Object.values(labels).map(label=>{const chip=document.createElement('span');chip.className='compute-chip';chip.textContent=label;return chip}));
+  const messages={
+   'local-strong':'الجهاز مناسب لتجربة معالجة محلية أقوى. ما زلنا نحتاج تحميل نموذج AI واختبار الأداء.',
+   'local-hybrid':'يمكن تنفيذ المهام الخفيفة محليًا؛ الأفضل توزيع التحليل الثقيل على دفعات واستخدام سحابة مجانية عند توفرها.',
+   'cloud-fallback':'هذا الجهاز يناسب المعالجة الخفيفة، وقد نحتاج عاملًا سحابيًا لبعض مهام الذكاء الاصطناعي.'
+  };
+  summary.textContent=messages[result.tier];
+  $('engineStatus').textContent='فحص الجهاز اكتمل. لم يتم تحميل نموذج ذكاء اصطناعي أو تشغيل خدمة مدفوعة.';
+ }catch(error){summary.textContent='تعذر فحص بعض قدرات الجهاز. سيظل المحرر المحلي متاحًا.';console.warn(error)}
+ finally{button.disabled=false;button.textContent='إعادة فحص الجهاز'}
+}
 
 let toastTimer;
 function toast(message){$('toast').textContent=message;$('toast').classList.add('show');clearTimeout(toastTimer);toastTimer=setTimeout(()=>$('toast').classList.remove('show'),3000)}
@@ -75,4 +105,6 @@ $('closeDialog').onclick=()=>$('infoDialog').close();
 document.querySelectorAll('[data-tab]').forEach(b=>b.onclick=()=>{const tab=b.dataset.tab;if(tab==='editor')return;const msg=tab==='auto'?'المونتاج التلقائي يحتاج ربط نموذج ذكاء اصطناعي وخادم آمن قبل تفعيله.':'هذه الوحدة ضمن بنية المشروع، وسيتم ربطها بخدمات فعلية قبل إعلان جاهزيتها.';$('dialogTitle').textContent=b.textContent.trim();$('dialogText').textContent=msg;$('infoDialog').showModal()});
 window.addEventListener('beforeunload',()=>{state.clips.forEach(c=>URL.revokeObjectURL(c.url));if(state.musicUrl)URL.revokeObjectURL(state.musicUrl)});
 try{const recovered=JSON.parse(localStorage.getItem('clipai-project-meta')||'null');if(recovered?.format==='CLIPAI_PROJECT_V1'){state.pendingProject=recovered;$('projectName').value=recovered.name||$('projectName').value;if(recovered.aspect)$('aspectSelect').value=recovered.aspect;if(recovered.quality)$('qualitySelect').value=recovered.quality;if(recovered.fps)$('fpsSelect').value=recovered.fps;if(recovered.musicVolume!==undefined)$('musicVolume').value=String(recovered.musicVolume);if(recovered.brightness!==undefined)$('brightness').value=String(recovered.brightness);if(recovered.contrast!==undefined)$('contrast').value=String(recovered.contrast);if(recovered.saturation!==undefined)$('saturation').value=String(recovered.saturation);applyEffects();$('ratioLabel').textContent=$('aspectSelect').value;toast('تم استرجاع بيانات مشروعك السابق؛ أعد استيراد الفيديوهات والصوت الأصليين.')}}catch{localStorage.removeItem('clipai-project-meta')}
+$('checkDeviceBtn')?.addEventListener('click',checkLocalDevice);
+checkLocalDevice();
 render();

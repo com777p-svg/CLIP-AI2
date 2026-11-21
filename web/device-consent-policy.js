@@ -1,4 +1,4 @@
-export const DEVICE_CONSENT_CHOICES = Object.freeze([
+export const DEVICE_CONSENT_BONUS_POINTS = 100;\n\nexport const DEVICE_CONSENT_CHOICES = Object.freeze([
   'opt-in-pending-task-confirmation',
   'local-only'
 ]);

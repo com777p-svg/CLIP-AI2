@@ -36,6 +36,16 @@
           <div class="url-import-controls"><input id="videoUrlInput" type="url" inputmode="url" maxlength="2048" placeholder="الصق رابط YouTube أو Twitch أو منصة أخرى" aria-label="رابط الفيديو"><button class="primary-btn" id="inspectUrlBtn" type="button">فحص الرابط</button></div>
           <p id="urlImportStatus" class="url-import-status" role="status" aria-live="polite">سيتم التحقق من صيغة الرابط والمنصة قبل أي محاولة استيراد.</p>
         </section>
+        <section class="local-compute-panel" aria-labelledby="localComputeTitle">
+          <div class="local-compute-heading">
+            <div><b id="localComputeTitle">استخدم هاتفك كمحرك معالجة</b><p id="localComputeSummary">نفحص قدرات المتصفح لتحديد المهام التي يمكن تنفيذها محليًا.</p></div>
+            <button class="secondary-btn" id="checkDeviceBtn" type="button">فحص الجهاز</button>
+          </div>
+          <div class="local-compute-results" id="localComputeResults" role="status" aria-live="polite">
+            <span class="compute-chip">WebAssembly: جارٍ الفحص</span><span class="compute-chip">WebGPU: جارٍ الفحص</span><span class="compute-chip">Workers: جارٍ الفحص</span>
+          </div>
+          <small>هذا فحص لقدرات الجهاز فقط، ولا يعني أن نموذج الذكاء الاصطناعي قد تم تحميله. لن يتم تشغيل سيرفر مدفوع أو خصم أي مبلغ.</small>
+        </section>
         <section class="editor-grid">
           <div class="preview-panel">
             <div class="panel-top"><span>المعاينة</span><div class="preview-meta"><span id="ratioLabel">16:9</span><span class="quality-pill">معاينة محلية</span></div></div>

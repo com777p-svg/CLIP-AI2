@@ -16,10 +16,10 @@ function readChoice() {
 }
 
 function saveChoice(choice) {
-  if (choice === 'opt-in-pending-task-confirmation' && localStorage.getItem(OPT_IN_BONUS_KEY) !== 'awarded') {
+  let receivedBonus = false;\n  if (choice === 'opt-in-pending-task-confirmation' && localStorage.getItem(OPT_IN_BONUS_KEY) !== 'awarded') {
     const current = Number(localStorage.getItem(POINTS_KEY) || 0);
     localStorage.setItem(POINTS_KEY, String(current + OPT_IN_BONUS));
-    localStorage.setItem(OPT_IN_BONUS_KEY, 'awarded');
+    localStorage.setItem(OPT_IN_BONUS_KEY, 'awarded');\n    receivedBonus = true;
     window.dispatchEvent(new CustomEvent('clipai:points-updated', { detail: { points: current + OPT_IN_BONUS, bonus: OPT_IN_BONUS } }));
   }
   localStorage.setItem(STORAGE_KEY, JSON.stringify({
@@ -29,7 +29,7 @@ function saveChoice(choice) {
   }));
   gate.hidden = true;
   document.documentElement.classList.remove('consent-open');
-  window.dispatchEvent(new CustomEvent('clipai:device-consent-changed', { detail: { choice } }));
+  window.dispatchEvent(new CustomEvent('clipai:device-consent-changed', { detail: { choice } }));\n  if (receivedBonus) window.dispatchEvent(new CustomEvent('clipai:toast', { detail: { message: 'حصلت على 100 نقطة ترحيبية تجريبية. لم تبدأ أي مشاركة فعلية.' } }));
 }
 
 function openGate() {

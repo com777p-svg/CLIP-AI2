@@ -18,7 +18,9 @@ function readChoice() {
 function saveChoice(choice) {
   if (choice === 'opt-in-pending-task-confirmation' && localStorage.getItem(OPT_IN_BONUS_KEY) !== 'awarded') {
     const current = Number(localStorage.getItem(POINTS_KEY) || 0);
-    localStorage.setItem(POINTS_KEY, String(current + OPT_IN_BONUS));\n    localStorage.setItem(OPT_IN_BONUS_KEY, 'awarded');\n    window.dispatchEvent(new CustomEvent('clipai:points-updated', { detail: { points: current + OPT_IN_BONUS, bonus: OPT_IN_BONUS } }));
+    localStorage.setItem(POINTS_KEY, String(current + OPT_IN_BONUS));
+    localStorage.setItem(OPT_IN_BONUS_KEY, 'awarded');
+    window.dispatchEvent(new CustomEvent('clipai:points-updated', { detail: { points: current + OPT_IN_BONUS, bonus: OPT_IN_BONUS } }));
   }
   localStorage.setItem(STORAGE_KEY, JSON.stringify({
     choice,

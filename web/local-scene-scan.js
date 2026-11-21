@@ -25,6 +25,7 @@ export async function scanLocalVideoScenes(file, onProgress = () => {}) {
 
   try {
     await waitFor(video, 'loadedmetadata');
+    if (video.readyState < 2) await waitFor(video, 'loadeddata');
     if (!Number.isFinite(video.duration) || video.duration <= 0) throw new Error('مدة الفيديو غير صالحة.');
     const width = 96, height = 54;
     const canvas = document.createElement('canvas');

@@ -7,7 +7,7 @@
 - Select moments using measured editorial signals: hook strength, story clarity, curiosity, emotional impact, standalone context, audio clarity and visual quality. Penalize duplicate moments and missing context.
 - Produce two subtitle versions from the same analysis: source-language captions preserving the words as spoken, and translated captions in the other language (Arabic ↔ English).
 - Both outputs use the same selected video ranges and preserve the original audio.
-- No dubbing, voice synthesis, voice replacement or translated audio. This is a permanent product constraint.
+- Current default: preserve the original audio and provide written captions/translation only. Dubbing, voice synthesis or voice replacement are not part of the current workflow. A future optional dubbing feature may be considered only as a separate user-controlled feature; it must never activate automatically.
 - Scores estimate editorial potential only. Never promise virality, reach or views.
 
 ## Processing architecture
@@ -29,7 +29,7 @@
 - A free tier cannot be assumed to handle unlimited one-hour videos or concurrent users. Measure throughput before promising service levels.
 
 ## Current implementation boundary
-web/ai-pipeline.js contains deterministic utilities for normalizing one transcript, ranking worker-scored candidates, and creating the bilingual manifest. It is not a speech recognizer, translation model, downloader or GPU worker. A real worker plus storage and queue are still required before end-to-end AI processing can be enabled.
+web/ai-pipeline.js contains deterministic utilities for normalizing one transcript, ranking worker-scored candidates, and creating the bilingual manifest. It is not a translation model, downloader or GPU worker. A local Whisper transcription prototype now extracts five-minute audio chunks in the browser and runs an on-demand multilingual model; it has not yet been validated across mobile devices and is limited to files up to 250 MB and one hour. A real worker plus storage and queue are still required before end-to-end AI processing can be enabled.
 
 
 ## Local-first device processing (new foundation)

@@ -9,6 +9,7 @@ const state = { clips: [], selected: null, ffmpeg: null, exporting: false, proje
 const input = $('fileInput'), video = $('videoPreview'), empty = $('emptyState');
 window.addEventListener('clipai:toast', event => toast(event.detail?.message || ''));
 window.addEventListener('clipai:points-updated', event => { const el = $('pointsBalance'); if (el) el.textContent = String(event.detail?.points ?? 0) + ' نقطة'; });
+const savedPoints = Number(localStorage.getItem('clipai-points-v1') || 0);\nconst pointsBalance = $('pointsBalance'); if (pointsBalance) pointsBalance.textContent = savedPoints + ' نقطة';
 const urlInput = $('videoUrlInput'), inspectUrlBtn = $('inspectUrlBtn'), urlImportStatus = $('urlImportStatus');
 async function inspectVideoUrl(){
  const raw=(urlInput.value||'').trim();
@@ -144,6 +145,6 @@ document.querySelectorAll('[data-tab]').forEach(b=>b.onclick=()=>{const tab=b.da
 window.addEventListener('beforeunload',()=>{state.clips.forEach(c=>URL.revokeObjectURL(c.url));if(state.musicUrl)URL.revokeObjectURL(state.musicUrl)});
 try{const recovered=JSON.parse(localStorage.getItem('clipai-project-meta')||'null');if(recovered?.format==='CLIPAI_PROJECT_V1'){state.pendingProject=recovered;$('projectName').value=recovered.name||$('projectName').value;if(recovered.aspect)$('aspectSelect').value=recovered.aspect;if(recovered.quality)$('qualitySelect').value=recovered.quality;if(recovered.fps)$('fpsSelect').value=recovered.fps;if(recovered.musicVolume!==undefined)$('musicVolume').value=String(recovered.musicVolume);if(recovered.brightness!==undefined)$('brightness').value=String(recovered.brightness);if(recovered.contrast!==undefined)$('contrast').value=String(recovered.contrast);if(recovered.saturation!==undefined)$('saturation').value=String(recovered.saturation);applyEffects();$('ratioLabel').textContent=$('aspectSelect').value;toast('تم استرجاع بيانات مشروعك السابق؛ أعد استيراد الفيديوهات والصوت الأصليين.')}}catch{localStorage.removeItem('clipai-project-meta')}
 $('checkDeviceBtn')?.addEventListener('click',checkLocalDevice);
-$('scanScenesBtn')?.addEventListener('click',scanSelectedScenes);
+$('scanScenesBtn')?.addEventListener('click',scanSelectedScenes);\n$('transcribeBtn')?.addEventListener('click',transcribeSelectedVideo);
 checkLocalDevice();
 render();

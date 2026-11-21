@@ -30,3 +30,13 @@
 
 ## Current implementation boundary
 web/ai-pipeline.js contains deterministic utilities for normalizing one transcript, ranking worker-scored candidates, and creating the bilingual manifest. It is not a speech recognizer, translation model, downloader or GPU worker. A real worker plus storage and queue are still required before end-to-end AI processing can be enabled.
+
+
+## Local-first device processing (new foundation)
+- The browser checks WebGPU, WebAssembly, Web Workers, WebCodecs, hardware concurrency and approximate device memory.
+- Device classification is advisory only; it does not claim a model is loaded or that the phone can run a particular model.
+- A lightweight scene pre-scan samples downscaled video frames locally and uses a Web Worker to flag large visual changes. It does not upload the media.
+- Visual transitions are only technical scene-boundary hints. They are not semantic understanding and must never be treated as proof that a moment is funny, exciting, coherent or likely to perform.
+- Next local stages can reuse these boundaries to avoid redundant decoding, then run speech recognition and semantic ranking with a suitable on-device model when device resources permit.
+- On weaker devices, local preprocessing should remain optional and a queued free-tier worker can be used when available. No automatic paid fallback.
+- Mobile browsers may throttle or suspend long-running tabs, so long jobs need checkpoints, progress reporting and resumable chunks.

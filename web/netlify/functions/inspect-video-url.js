@@ -43,7 +43,7 @@ function matchesHost(host, allowed) {
   return allowed.some(domain => host === domain || host.endsWith("." + domain));
 }
 
-exports.handler = async (event) => {
+export const handler = async (event) => {
   if (event.httpMethod !== "POST") return json(405, { ok: false, error: "طريقة الطلب غير مسموحة." });
   if (!event.headers["content-type"]?.toLowerCase().includes("application/json")) {
     return json(415, { ok: false, error: "أرسل الرابط بصيغة JSON فقط." });

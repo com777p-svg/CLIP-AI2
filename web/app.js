@@ -9,7 +9,14 @@ const state = { clips: [], selected: null, ffmpeg: null, exporting: false, proje
 const input = $('fileInput'), video = $('videoPreview'), empty = $('emptyState');
 window.addEventListener('clipai:toast', event => toast(event.detail?.message || ''));
 window.addEventListener('clipai:points-updated', event => { const el = $('pointsBalance'); if (el) el.textContent = String(event.detail?.points ?? 0) + ' نقطة'; });
-const savedPoints = Number(localStorage.getItem('clipai-points-v1') || 0);
+const savedPoints = (() => {
+  try {
+    const stored = Number.parseInt(localStorage.getItem('clipai-points-v1') ?? '0', 10);
+    return Number.isFinite(stored) && stored > 0 ? stored : 0;
+  } catch {
+    return 0;
+  }
+})();
 const pointsBalance = $('pointsBalance'); if (pointsBalance) pointsBalance.textContent = savedPoints + ' نقطة';
 const urlInput = $('videoUrlInput'), inspectUrlBtn = $('inspectUrlBtn'), urlImportStatus = $('urlImportStatus');
 async function inspectVideoUrl(){

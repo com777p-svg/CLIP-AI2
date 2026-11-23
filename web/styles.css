@@ -29,3 +29,14 @@
 .consent-reward{margin:12px 0;padding:10px;border-radius:9px;background:#29213b;border:1px solid #594579;color:#e1d5ff;font-size:12px;line-height:1.8}
 
 .points-balance{display:inline-flex;align-items:center;border:1px solid #51436e;background:#211b30;color:#dfd2ff;border-radius:20px;padding:6px 10px;font-size:10px;white-space:nowrap}
+
+
+.local-import-panel{display:flex;align-items:center;gap:14px;background:#171624;border:1px dashed #65558b;border-radius:13px;padding:15px;margin:0 0 13px;transition:border-color .15s,background .15s}
+.local-import-panel.drag-active{border-color:#b69cff;background:#28213a}
+.local-import-icon{display:grid;place-items:center;flex:0 0 42px;height:42px;border-radius:11px;background:#2b2340;color:#cbb8ff;font-size:24px}
+.local-import-copy{display:flex;flex:1;min-width:0;flex-direction:column;gap:5px}
+.local-import-copy b{font-size:12px;color:var(--text)}
+.local-import-copy span,.local-import-copy p{font-size:10px;line-height:1.7;color:var(--muted);margin:0}
+.local-import-copy p{color:#c5b5ff}
+.local-import-panel button{white-space:nowrap}
+@media(max-width:600px){.local-import-panel{align-items:stretch;flex-direction:column}.local-import-icon{display:none}.local-import-panel button{width:100%}}

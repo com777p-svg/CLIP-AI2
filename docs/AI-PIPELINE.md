@@ -40,3 +40,10 @@ web/ai-pipeline.js contains deterministic utilities for normalizing one transcri
 - Next local stages can reuse these boundaries to avoid redundant decoding, then run speech recognition and semantic ranking with a suitable on-device model when device resources permit.
 - On weaker devices, local preprocessing should remain optional and a queued free-tier worker can be used when available. No automatic paid fallback.
 - Mobile browsers may throttle or suspend long-running tabs, so long jobs need checkpoints, progress reporting and resumable chunks.
+
+
+## Transcript-based suggestion prototype (added)
+- After the user explicitly runs local transcription, the UI now presents up to eight preliminary moment suggestions with timestamps.
+- This prototype uses simple text cues, sentence punctuation, transcript length and segment duration. Its score is a heuristic, not an AI semantic rating, video understanding, or a prediction of reach.
+- Suggestions avoid nearby overlapping ranges and can be reviewed by the user. They do not automatically cut or export video.
+- Automated tests cover timestamp validation, cue suggestions and overlap filtering. The next real AI step remains integrating a semantic model that evaluates context, story completeness, emotion and audio/visual quality.

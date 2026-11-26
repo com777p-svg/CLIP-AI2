@@ -7,7 +7,7 @@ test('suggests timestamped transcript moments and labels heuristic cues', () => 
     { start: 1, end: 18, text: 'Wait, this is impossible! I finally won the challenge.' },
     { start: 25, end: 35, text: 'We went there and came back.' },
     { start: 50, end: 65, text: 'يا إلهي هذا مذهل، لقد فزت أخيرًا!' }
-  ], { minGapSeconds: 5 });
+  ], { minGapSeconds: 20 });
   assert.equal(result.suggestions.length, 2);
   assert.equal(result.suggestions[0].cueDetected, true);
   assert.ok(result.suggestions[0].heuristicScore > 0);

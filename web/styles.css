@@ -40,3 +40,5 @@
 .local-import-copy p{color:#c5b5ff}
 .local-import-panel button{white-space:nowrap}
 @media(max-width:600px){.local-import-panel{align-items:stretch;flex-direction:column}.local-import-icon{display:none}.local-import-panel button{width:100%}}
+
+.transcript-suggestions{margin-top:10px;display:grid;gap:8px;color:var(--text-muted,#aaa);font-size:13px}.transcript-suggestions:empty{display:none}.transcript-suggestions>b{color:var(--text,#eee)}.transcript-suggestion{padding:9px 11px;border:1px solid var(--border,#30303a);border-radius:9px;background:rgba(130,100,220,.07);line-height:1.6;overflow-wrap:anywhere}.transcript-suggestions small{line-height:1.6}
